@@ -19,14 +19,16 @@ func main() {
 	// case1.如果认为没有查到结果属于正常case就降级处理：
 	username1, err1 := query1(id, db)
 	if err1 != nil {
-		fmt.Printf("FATAL: %+v\n", err1)
+		fmt.Printf("original error: %T %v\n", errors.Cause(err1), errors.Cause(err1))
+		fmt.Printf("stack trace:\n%+v\n", err1)
 		os.Exit(1)
 	}
 
 	// case2.如果业务认为没有查到结果就是个错误就携带业务信息往上抛：
 	username2, err2 := query2(id, db)
 	if err2 != nil {
-		fmt.Printf("FATAL: %+v\n", err1)
+		fmt.Printf("original error: %T %v\n", errors.Cause(err2), errors.Cause(err2))
+		fmt.Printf("stack trace:\n%+v\n", err2)
 		os.Exit(1)
 	}
 
