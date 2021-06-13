@@ -4,28 +4,37 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
 
 func main() {
-	var g errgroup.Group
-	stop := make(chan os.Signal)
-	g.Go(serveAPP())
-}
-
-func serveAPP()
-
-func serve(addr string, handler http.Handler, stop <-chan os.Signal) error {
 	s := http.Server{
-		Addr:    addr,
-		Handler: handler,
+		Addr:    "addr",
+		Handler: http.DefaultServeMux,
 	}
-
-	go func() {
-		<-stop
-		s.Shutdown(context.Background())
-	}()
-
-	return s.ListenAndServe()
+	ctx0, cancel := context.WithCancel(context.Background())
+	g, ctx := errgroup.WithContext(ctx0)
+	stop := make(chan os.Signal)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	g.Go(func() error {
+		<-ctx.Done()
+		return s.Shutdown(context.Background())
+	})
+	g.Go(func() error {
+		return s.ListenAndServe()
+	})
+	g.Go(func() error {
+		for {
+			select {
+			case <-ctx.Done():
+				return errors.New("receive cancle context error")
+			case <-stop:
+				cancel()
+			}
+		}
+	})
 }
