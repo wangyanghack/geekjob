@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -37,4 +38,7 @@ func main() {
 			}
 		}
 	})
+	if err := g.Wait(); err != nil {
+		fmt.Printf("err is %+v\n", err)
+	}
 }
